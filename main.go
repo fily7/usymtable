@@ -15,8 +15,8 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 	start := 0xf000
 	end := 0xffff
+	fmt.Printf("For print next %d lines press Enter to quit press q\n", LINES)
 	for {
-		fmt.Printf("For print next %d lines press n to quit press q\n", LINES)
 		text, _, err := reader.ReadRune()
 		if err != nil {
 			panic(err)
