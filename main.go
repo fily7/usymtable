@@ -9,20 +9,55 @@ import (
 )
 
 const (
-	LINES   = 15
-	SYMBOLS = 15
+	LINES      = 15
+	SYMBOLS    = 15
+	LINE_LEN   = SYMBOLS * 7
+	PAGE_SIZE  = LINES * SYMBOLS
+	END_SYMBOL = 0xffff
+	PAGES      = 1 + END_SYMBOL/PAGE_SIZE
 )
+
+func print_contorl_panel() {
+	control_panel := fmt.Sprintf("\n- [u]09af to symbol, 1-%d to page, [p]revious, [q]uit, [n]ext ", PAGES)
+	control_panel = fmt.Sprintf("%s%s", control_panel, strings.Repeat("-", LINE_LEN-len(control_panel)))
+	fmt.Println(control_panel)
+}
+
+func print_page(n int) {
+	if n < 1 || n > PAGES {
+		fmt.Printf("%d page out of range 1-%d", n, PAGES)
+		print_contorl_panel()
+		return
+	}
+	start := (n - 1) * PAGE_SIZE
+	page_title := fmt.Sprintf("- PAGE %d of %d ", n, PAGES)
+	fmt.Printf("%s%s\n\n", page_title, strings.Repeat("-", LINE_LEN-len(page_title)))
+	for j := 0; j < LINES; j++ {
+		for i := 0; i < SYMBOLS; i++ {
+			if start+i > END_SYMBOL {
+				break
+			}
+			fmt.Printf("   %c   ", start+i)
+		}
+		fmt.Println(" ")
+		for i := 0; i < SYMBOLS; i++ {
+			if start+i > END_SYMBOL {
+				print_contorl_panel()
+				return
+			}
+			fmt.Printf(" u%04x ", start+i)
+		}
+		fmt.Println(" ")
+		start += SYMBOLS
+	}
+	print_contorl_panel()
+}
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
-	start := 0xf000
-	end := 0xffff
-	page_size := LINES * SYMBOLS
-	start = (start / page_size) * page_size
-	line_len := 7 * SYMBOLS
-	page_footer := fmt.Sprintf("\n- [u]09af to symbol, 1-%d to page, [p]revious, [q]uit, [n]ext ", 1+end/page_size)
-	page_footer = fmt.Sprintf("%s%s", page_footer, strings.Repeat("-", line_len-len(page_footer)))
-	fmt.Println(page_footer)
+	page := 274
+	print_page(page)
+
 	for {
 		text, err := reader.ReadString('\n')
 		if err != nil {
@@ -32,43 +67,26 @@ func main() {
 			os.Exit(0)
 		}
 		if text == "p\n" {
-			start -= page_size * 2
-			if start < 0 {
-				start = 0
-			}
+			page--
+		} else if text == "n\n" || text == "\n" {
+			page++
 		} else if text[0] == 'u' && len(text) == 6 {
 			char_num, err := strconv.ParseUint(text[1:len(text)-1], 16, 64)
 			if err == nil {
-				start = (int(char_num) / page_size) * page_size
+				page = 1 + int(char_num)/PAGE_SIZE
 			} else {
 				fmt.Println("use u0000-uffff to find char")
+				continue
 			}
 		} else if len(text) > 1 {
 			to_page, err := strconv.Atoi(text[:len(text)-1])
 			if err == nil {
-				to_page--
-				start = to_page * page_size
+				page = to_page
+			} else {
+				print_contorl_panel()
+				continue
 			}
 		}
-		page_title := fmt.Sprintf("- PAGE %d of %d ", 1+start/page_size, 1+end/page_size)
-		fmt.Printf("%s%s\n\n", page_title, strings.Repeat("-", line_len-len(page_title)))
-		for j := 0; j < LINES; j++ {
-			for i := 0; i < SYMBOLS; i++ {
-				if start+i > end {
-					break
-				}
-				fmt.Printf("   %c   ", start+i)
-			}
-			fmt.Println(" ")
-			for i := 0; i < SYMBOLS; i++ {
-				if start+i > end {
-					os.Exit(0)
-				}
-				fmt.Printf(" u%04x ", start+i)
-			}
-			fmt.Println(" ")
-			start += SYMBOLS
-		}
-		fmt.Println(page_footer)
+		print_page(page)
 	}
 }
