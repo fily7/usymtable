@@ -20,28 +20,10 @@ func main() {
 	page_size := LINES * SYMBOLS
 	start = (start / page_size) * page_size
 	line_len := 7 * SYMBOLS
+	page_footer := fmt.Sprintf("\n- [u]09af to symbol, 1-%d to page, [p]revious, [q]uit, [n]ext ", 1+end/page_size)
+	page_footer = fmt.Sprintf("%s%s", page_footer, strings.Repeat("-", line_len-len(page_footer)))
+	fmt.Println(page_footer)
 	for {
-		page_title := fmt.Sprintf("- PAGE %d of %d ", 1+start/page_size, 1+end/page_size)
-		fmt.Printf("%s%s\n\n", page_title, strings.Repeat("-", line_len-len(page_title)))
-		for j := 0; j < LINES; j++ {
-			for i := 0; i < SYMBOLS; i++ {
-				if start+i > end {
-					break
-				}
-				fmt.Printf("   %c   ", start+i)
-			}
-			fmt.Println(" ")
-			for i := 0; i < SYMBOLS; i++ {
-				if start+i > end {
-					os.Exit(0)
-				}
-				fmt.Printf(" u%04x ", start+i)
-			}
-			fmt.Println(" ")
-			start += SYMBOLS
-		}
-		page_footer := fmt.Sprintf("\n- [u]09af to symbol, 1-%d to page, [p]revious, [q]uit, [n]ext ", 1+end/page_size)
-		fmt.Printf("%s%s\n", page_footer, strings.Repeat("-", line_len-len(page_footer)))
 		text, err := reader.ReadString('\n')
 		if err != nil {
 			panic(err)
@@ -68,5 +50,25 @@ func main() {
 				start = to_page * page_size
 			}
 		}
+		page_title := fmt.Sprintf("- PAGE %d of %d ", 1+start/page_size, 1+end/page_size)
+		fmt.Printf("%s%s\n\n", page_title, strings.Repeat("-", line_len-len(page_title)))
+		for j := 0; j < LINES; j++ {
+			for i := 0; i < SYMBOLS; i++ {
+				if start+i > end {
+					break
+				}
+				fmt.Printf("   %c   ", start+i)
+			}
+			fmt.Println(" ")
+			for i := 0; i < SYMBOLS; i++ {
+				if start+i > end {
+					os.Exit(0)
+				}
+				fmt.Printf(" u%04x ", start+i)
+			}
+			fmt.Println(" ")
+			start += SYMBOLS
+		}
+		fmt.Println(page_footer)
 	}
 }
