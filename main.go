@@ -67,9 +67,13 @@ func main() {
 			os.Exit(0)
 		}
 		if text == "p\n" {
-			page--
+			if page > 1 {
+				page--
+			}
 		} else if text == "n\n" || text == "\n" {
-			page++
+			if page < PAGES {
+				page++
+			}
 		} else if text[0] == 'u' && len(text) == 6 {
 			char_num, err := strconv.ParseUint(text[1:len(text)-1], 16, 64)
 			if err == nil {
@@ -81,6 +85,11 @@ func main() {
 		} else if len(text) > 1 {
 			to_page, err := strconv.Atoi(text[:len(text)-1])
 			if err == nil {
+				if 0 > to_page || to_page > PAGES {
+					fmt.Printf("%d page out of range 1-%d", to_page, PAGES)
+					print_contorl_panel()
+					continue
+				}
 				page = to_page
 			} else {
 				print_contorl_panel()
