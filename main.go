@@ -17,6 +17,15 @@ const (
 	PAGES      = 1 + END_SYMBOL/PAGE_SIZE
 )
 
+func clean_screen() {
+	fmt.Printf("\033[0;0H")
+	for i := 0; i < LINES*3; i++ {
+		fmt.Print("\033[2K")
+		fmt.Print("\033[1B")
+	}
+	fmt.Printf("\033[0;0H")
+}
+
 func print_contorl_panel() {
 	control_panel := fmt.Sprintf("\n- [u]09af to symbol, 1-%d to page, [p]revious, [q]uit, [n]ext ", PAGES)
 	control_panel = fmt.Sprintf("%s%s", control_panel, strings.Repeat("-", LINE_LEN-len(control_panel)))
@@ -56,14 +65,15 @@ func print_page(n int) {
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 	page := 274
+	clean_screen()
 	print_page(page)
-
 	for {
 		text, err := reader.ReadString('\n')
 		if err != nil {
 			panic(err)
 		}
 		if text == "q\n" {
+			clean_screen()
 			os.Exit(0)
 		}
 		if text == "p\n" {
@@ -96,6 +106,7 @@ func main() {
 				continue
 			}
 		}
+		clean_screen()
 		print_page(page)
 	}
 }
