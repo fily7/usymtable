@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+// For JetBrains Mono
+
 const (
 	LINES      = 15
 	SYMBOLS    = 15
